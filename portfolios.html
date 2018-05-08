@@ -1,0 +1,103 @@
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand">Plutus</a>
+    </div>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            Portfolios <span class="caret"></span>
+          </a>
+          <ul id="portfolio_dropdown" class="dropdown-menu">
+          </ul>
+        </li>
+      </ul>
+      <ul class="nav navbar-right navbar-nav">
+        <li>
+          <button class="btn btn-default navbar-btn plutus_right" type="button" data-toggle="modal" data-target="#addPortModal">Add Portfolio</button>
+          <div class="modal fade" id="addPortModal" role="dialog">
+            <div class="modal-dialog  modal-sm">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title">Add Portfolio</h4>
+                </div>
+                <div class="modal-body">
+                  <form id="add_port" name="plutus_add_port" role="form">
+                    <div class="form-group">
+                      <label for="portname">Portfolio Name</label>
+                      <input type="text" class="form-control" id="portname" placeholder="Enter name">
+                    </div>
+                    <button type="submit" class="btn btn-success">Add</button>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>    
+            </div>
+          </div>
+        </li>
+        <li>
+          <button class="btn btn-default navbar-btn" type="button" data-toggle="modal" data-target="#clearAccModal">Clear Account</button>
+          <div class="modal fade" id="clearAccModal" role="dialog">
+            <div class="modal-dialog  modal-sm">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title">Clear Account</h4>
+                </div>
+                <div class="modal-body">
+                  <form id="clear_acc" name="plutus_clear_acc" role="form">
+                    <p>Are you sure you want to do this?</p>
+                    <button type="submit" class="btn btn-success">Delete</button>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>    
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div id="port_data" class="hidden">
+  <h2 id="table_title" class="plutus_left">Stock Table</h2>
+  <table class="table">
+    <tr>
+      <th scope="col">Symbol</th>
+      <th scope="col">Buy Price</th>
+      <th scope="col">Buy Quantity</th>
+      <th scope="col">Current Price</th>
+      <th scope="col">Gain/Loss</th>
+    </tr>
+  </table>
+  <button id="open_hold" class="btn btn-default pull-right plutus_right2" type="button" data-toggle="modal" data-target="#addHoldModal">Add Stock</button>
+  <div class="modal fade" id="addHoldModal" role="dialog">
+    <div class="modal-dialog  modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Add Stock</h4>
+        </div>
+        <div class="modal-body">
+          <form id="add_hold" name="plutus_add_hold" role="form">
+            <div class="form-group">
+              <label for="symbol">Stock Symbol</label>
+              <input type="text" class="form-control" id="symbol" placeholder="Enter Stock Symbol">
+            </div>
+            <div class="form-group">
+              <label for="quantity">Stock Quantity</label>
+              <input type="number" class="form-control" id="quantity" placeholder="Enter Quantity">
+            </div>
+            <button type="submit" class="btn btn-success">Add</button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>    
+    </div>
+  </div>
+</div>
