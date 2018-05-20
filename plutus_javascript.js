@@ -165,8 +165,73 @@ function displayMain(username, key)
         saveHoldingData();
     });
     
+    // if delete portfolio form submitted
+    $("#delete_port").submit(function(e)
+    {
+        e.preventDefault();
+        
+        deletePortfolio();
+    });
+    
+    console.log("Test0");
     loadDropdown(username, true);
   });
+  
+  if(sessionStorage.getItem("plutus_interval") !== null)
+  {
+    console.log("Test1");
+    var intervalId = sessionStorage.getItem("plutus_interval");
+    clearInterval(intervalId);
+  }
+  var intId = setInterval(updateOnInterval, 5000);
+  sessionStorage.setItem("plutus_interval", intId);
+  console.log("Test2");
+
+}
+
+function updateOnInterval()
+{
+  console.log("Test3");
+  if(sessionStorage.getItem("plutus_name") !== null)
+  {
+    var name = sessionStorage.getItem("plutus_name");
+    displayPortfolio(name);
+  }
+}
+
+function deletePortfolio()
+{
+  var script = "delete_portfolio.php?name=" + sessionStorage.getItem("plutus_name");
+  
+  // call the php script to remove the current portfolio from the database
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) 
+    {
+      result = xmlhttp.responseText;
+
+      // interpret php script response
+      if(result === "SUCCESS")
+      {
+        // remove portfolio name from session storage
+        sessionStorage.removeItem("plutus_name");
+        
+        // reload data
+        var username = localStorage.getItem("plutus_username");
+        loadDropdown(username, true);
+      }
+      else if(result === "QUERY_FAILED" || result === "NO_CONNECTION")
+      {
+        // error accessing database
+        alert("Error accessing database");
+      }
+      
+      // hide the modal
+      $("#delPortModal").modal('hide');
+    }
+  };
+  xmlhttp.open("GET", script, true);
+  xmlhttp.send(null);
 }
 
 function loadDropdown(username, displayFlag)
@@ -208,7 +273,7 @@ function loadDropdown(username, displayFlag)
 function displayPortfolio(name)
 {
   // save portfolio name in session storage
-  sessionStorage.setItem("name", name);
+  sessionStorage.setItem("plutus_name", name);
   var script = "get_portfolio_data.php?name=" + name;
   $("#table_title").html(name);
   $(".dropdown-toggle").html(name + ' <span class="caret"></span>');
@@ -313,7 +378,7 @@ function saveHoldingData()
       // retrieve stock price and save stock data to database
       quote = quotes[0];
       var price = quote["2. price"];
-      var name = sessionStorage.getItem("name");
+      var name = sessionStorage.getItem("plutus_name");
       
       var script = "create_holding.php?name=" + name + "&symbol=" + symbol + "&number=" + quantity + "&price=" + price;
       
@@ -352,7 +417,7 @@ function saveHoldingData()
 
 function clearAccountData()
 {
-  var script = "delete_account.php?user=" + localStorage.plutus_username;
+  var script = "delete_account.php?user=" + localStorage.getItem("plutus_username");
   
   // call the php script to remove the current account from the database
   var xmlhttp = new XMLHttpRequest();

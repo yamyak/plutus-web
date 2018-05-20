@@ -74,7 +74,7 @@
       <th scope="col">Gain/Loss</th>
     </tr>
   </table>
-  <button id="open_hold" class="btn btn-default pull-right plutus_right2" type="button" data-toggle="modal" data-target="#addHoldModal">Add Stock</button>
+  <button class="btn btn-default pull-right plutus_right2" type="button" data-toggle="modal" data-target="#addHoldModal">Add Stock</button>
   <div class="modal fade" id="addHoldModal" role="dialog">
     <div class="modal-dialog  modal-sm">
       <div class="modal-content">
@@ -92,6 +92,25 @@
               <input type="number" class="form-control" id="quantity" placeholder="Enter Quantity">
             </div>
             <button type="submit" class="btn btn-success">Add</button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>    
+    </div>
+  </div>
+  <button class="btn btn-default pull-right plutus_right2" type="button" data-toggle="modal" data-target="#delPortModal">Delete Portfolio</button>
+  <div class="modal fade" id="delPortModal" role="dialog">
+    <div class="modal-dialog  modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Portfolio</h4>
+        </div>
+        <div class="modal-body">
+          <form id="delete_port" name="plutus_delete_port" role="form">
+            <p>Are you sure you want to do this?</p>
+            <button type="submit" class="btn btn-success">Delete</button>
           </form>
         </div>
         <div class="modal-footer">
