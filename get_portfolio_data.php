@@ -26,6 +26,7 @@ if(mysqli_num_rows($res) > 0)
   while($row = mysqli_fetch_assoc($res))
   {
     $o['symbol'] = $row["symbol"];
+    $o['name'] = $row["name"];
     $o['quantity'] = $row["quantity"];
     $o['buyTime'] = $row["buyTime"];
     $o['price'] = $row["price"];

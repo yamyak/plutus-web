@@ -1,6 +1,7 @@
 <?php
-$name = $_GET['name'];
+$port = $_GET['port'];
 $symbol = $_GET['symbol'];
+$name = $_GET['name'];
 $number = $_GET['number'];
 $price = $_GET['price'];
 
@@ -16,8 +17,8 @@ if (mysqli_connect_errno())
 }
 
 # add new holding entry to database
-$sql_select = "SELECT `portfolioID` FROM `portfolios` WHERE `name`='".$name."'";
-$sql = "INSERT INTO `holdings` (`holdingID`, `symbol`, `quantity`, `buyTime`, `price`, `portfolioKey`) VALUES ('0', '".$symbol."', '".$number."', NOW(), '".$price."', (".$sql_select."))";
+$sql_select = "SELECT `portfolioID` FROM `portfolios` WHERE `name`='".$port."'";
+$sql = "INSERT INTO `holdings` (`holdingID`, `symbol`, `name`, `quantity`, `buyTime`, `price`, `portfolioKey`) VALUES ('0', '".$symbol."', '".$name."', '".$number."', NOW(), '".$price."', (".$sql_select."))";
 $res = mysqli_query($conn, $sql);
 if (mysqli_connect_errno()) 
 {

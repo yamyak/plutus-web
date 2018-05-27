@@ -173,25 +173,20 @@ function displayMain(username, key)
         deletePortfolio();
     });
     
-    console.log("Test0");
     loadDropdown(username, true);
   });
   
   if(sessionStorage.getItem("plutus_interval") !== null)
   {
-    console.log("Test1");
     var intervalId = sessionStorage.getItem("plutus_interval");
     clearInterval(intervalId);
   }
-  var intId = setInterval(updateOnInterval, 5000);
+  var intId = setInterval(updateOnInterval, 30000);
   sessionStorage.setItem("plutus_interval", intId);
-  console.log("Test2");
-
 }
 
 function updateOnInterval()
 {
-  console.log("Test3");
   if(sessionStorage.getItem("plutus_name") !== null)
   {
     var name = sessionStorage.getItem("plutus_name");
@@ -303,7 +298,7 @@ function displayPortfolio(name)
           
           // add table header to table
           $("table").empty();
-          $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th></tr>');
+          $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th></tr>');
           
           // for each stock in api call return data
           var totalGain = 0;
@@ -329,7 +324,7 @@ function displayPortfolio(name)
               end = '<td class="negative">' + gain.toFixed(2) + '</td></tr>';
             }
             // add the table data to table
-            var row = '<tr><td>' + holdings[q]["symbol"] + '</td><td>'+ buyPrice.toFixed(2) + '</td><td>'+ buyQuant.toFixed(2) + '</td><td>' + currPrice.toFixed(2) + '</td>' + end;
+            var row = '<tr><td>' + holdings[q]["symbol"] + '</td><td>' + holdings[q]["name"] + '</td><td>'+ buyPrice.toFixed(2) + '</td><td>'+ buyQuant.toFixed(2) + '</td><td>' + currPrice.toFixed(2) + '</td>' + end;
             $("table").append(row);
           }
           
@@ -337,11 +332,11 @@ function displayPortfolio(name)
           var row = '';
           if(totalGain >= 0)
           {
-            row = '<tr><td></td><td></td><td></td><td></td><td class="positive">' + totalGain.toFixed(2) + '</td></tr>';
+            row = '<tr><td></td><td></td><td></td><td></td><td></td><td class="positive">' + totalGain.toFixed(2) + '</td></tr>';
           }
           else
           {
-            row = '<tr><td></td><td></td><td></td><td></td><td class="negative">' + totalGain.toFixed(2) + '</td></tr>';
+            row = '<tr><td></td><td></td><td></td><td></td><td></td><td class="negative">' + totalGain.toFixed(2) + '</td></tr>';
           }
           $("table").append(row);
         });
@@ -350,7 +345,7 @@ function displayPortfolio(name)
       {
         // if no holdings in portfolio, clear table and add header
         $("table").empty();
-        $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th></tr>');
+        $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th></tr>');
       }
       
       $("#port_data").removeClass("hidden");
@@ -362,8 +357,9 @@ function displayPortfolio(name)
 
 function saveHoldingData()
 {
-  // retrieve stock symbol and quantity from form
+  // retrieve stock symbol, name, and quantity from form
   var symbol = document.forms["plutus_add_hold"]["symbol"].value;
+  var name = document.forms["plutus_add_hold"]["name"].value;
   var quantity = document.forms["plutus_add_hold"]["quantity"].value;
   
   var api_link = "https://www.alphavantage.co/query?function=BATCH_STOCK_QUOTES&symbols=" + symbol + "&apikey=" + localStorage.getItem("plutus_key");
@@ -378,9 +374,9 @@ function saveHoldingData()
       // retrieve stock price and save stock data to database
       quote = quotes[0];
       var price = quote["2. price"];
-      var name = sessionStorage.getItem("plutus_name");
+      var port_name = sessionStorage.getItem("plutus_name");
       
-      var script = "create_holding.php?name=" + name + "&symbol=" + symbol + "&number=" + quantity + "&price=" + price;
+      var script = "create_holding.php?port=" + port_name + "&symbol=" + symbol + "&name=" + name + "&number=" + quantity + "&price=" + price;
       
       // call php script to save stock holding data to database
       var xmlhttp = new XMLHttpRequest();
