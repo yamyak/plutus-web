@@ -176,17 +176,22 @@ function displayMain(username, key)
     loadDropdown(username, true);
   });
   
+  // retrieve the interval id to clear the interval timer
   if(sessionStorage.getItem("plutus_interval") !== null)
   {
     var intervalId = sessionStorage.getItem("plutus_interval");
     clearInterval(intervalId);
   }
-  var intId = setInterval(updateOnInterval, 30000);
+  
+  // set the interval timer to 60 seconds
+  // to update the display
+  var intId = setInterval(updateOnInterval, 300000);
   sessionStorage.setItem("plutus_interval", intId);
 }
 
 function updateOnInterval()
 {
+  // get the current portfolio name and reload the portfolio data
   if(sessionStorage.getItem("plutus_name") !== null)
   {
     var name = sessionStorage.getItem("plutus_name");
@@ -298,15 +303,38 @@ function displayPortfolio(name)
           
           // add table header to table
           $("table").empty();
-          $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th></tr>');
+          $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th><th scope="col">Total Gain/Loss</th></tr>');
+          
+          var dailies = [];
           
           // for each stock in api call return data
+          var todayGain = 0;
           var totalGain = 0;
           for(var q in quotes)
           {
+            var id = parseInt(holdings[q]["id"];
+            var oldTime = parseInt(holdings[q]["oldTime"];
+            var oldPrice = parseFloat(holdings[q]["oldPrice"]);
+            
             var buyPrice = parseFloat(holdings[q]["price"]);
             var buyQuant = parseFloat(holdings[q]["quantity"]);
             var currPrice = parseFloat(quotes[q]["2. price"]);
+            
+            // calculate the gain based on how much the stock cost yesterday
+            // and how much it costs now
+            var gainToday = ((currPrice - oldPrice) * buyQuant);
+            todayGain += gainToday;
+            
+            // color the table text according to whether it's a positive or negative gain
+            var mid = '';
+            if(gainToday >= 0)
+            {
+              mid = '<td class="positive">' + gainToday.toFixed(2) + '</td>';
+            }
+            else
+            {
+              mid = '<td class="negative">' + gainToday.toFixed(2) + '</td>';
+            }
             
             // calculate the gain based on how much the stock cost initially
             // and how much it costs now
@@ -317,35 +345,70 @@ function displayPortfolio(name)
             var end = '';
             if(gain >= 0)
             {
-              end = '<td class="positive">' + gain.toFixed(2) + '</td></tr>';
+              end = mid + '<td class="positive">' + gain.toFixed(2) + '</td></tr>';
             }
             else
             {
-              end = '<td class="negative">' + gain.toFixed(2) + '</td></tr>';
+              end = mid + '<td class="negative">' + gain.toFixed(2) + '</td></tr>';
             }
+            
             // add the table data to table
             var row = '<tr><td>' + holdings[q]["symbol"] + '</td><td>' + holdings[q]["name"] + '</td><td>'+ buyPrice.toFixed(2) + '</td><td>'+ buyQuant.toFixed(2) + '</td><td>' + currPrice.toFixed(2) + '</td>' + end;
             $("table").append(row);
+            
+            // create array of 1 day comparison data 
+            var day = new Object();
+            day.index = id;
+            day.time = oldTime * 1000;
+            day.price = oldPrice;
+            dailies.push(day);
           }
           
           // add a total gain row to table, text colored appropriately
-          var row = '';
-          if(totalGain >= 0)
+          var beg = '';
+          if(todayGain >= 0)
           {
-            row = '<tr><td></td><td></td><td></td><td></td><td></td><td class="positive">' + totalGain.toFixed(2) + '</td></tr>';
+            beg = '<tr><td></td><td></td><td></td><td></td><td></td><td class="positive">' + todayGain.toFixed(2) + '</td>';
           }
           else
           {
-            row = '<tr><td></td><td></td><td></td><td></td><td></td><td class="negative">' + totalGain.toFixed(2) + '</td></tr>';
+            beg = '<tr><td></td><td></td><td></td><td></td><td></td><td class="negative">' + todayGain.toFixed(2) + '</td>';
+          }
+          
+          var row = '';
+          if(totalGain >= 0)
+          {
+            row = beg + '<td class="positive">' + totalGain.toFixed(2) + '</td></tr>';
+          }
+          else
+          {
+            row = beg + '<td class="negative">' + totalGain.toFixed(2) + '</td></tr>';
           }
           $("table").append(row);
+          
+          // retrieve the interval id to clear the interval timer
+          if(sessionStorage.getItem("plutus_dailies_interval") !== null)
+          {
+            var intervalId = sessionStorage.getItem("plutus_dailies_interval");
+            clearInterval(intervalId);
+          }
+          
+          // set interval timer to 5 seconds
+          // to retrieve the 1 day comparison data for each stock
+          // one by one
+          var intId = setInterval(updateDailies, 5000)
+          
+          // save 1 day comparison data and interval id
+          sessionStorage.setItem("plutus_dailies", dailies);
+          sessionStorage.setItem("plutus_dailies_count", 1);
+          sessionStorage.setItem("plutus_dailies_interval", intId);
         });
       }
       else
       {
         // if no holdings in portfolio, clear table and add header
         $("table").empty();
-        $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th></tr>');
+        $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th><th scope="col">Total Gain/Loss</th></tr>');
       }
       
       $("#port_data").removeClass("hidden");
@@ -353,6 +416,68 @@ function displayPortfolio(name)
   };
   xmlhttp.open("GET", script, true);
   xmlhttp.send(null);
+}
+
+function updateDailies()
+{
+  var dailies = sessionStorage.getItem("plutus_dailies");
+  var curr = sessionStorage.getItem("plutus_dailies_count");
+  
+  // if still more stock to update, continue
+  if( (curr - 1) < dailies.length )
+  {
+    // get current date, subtract 1 day, and reset to start of day
+    var d = new Date();
+    var n = d.getTime();
+    n -= (24 * 60 * 60 * 1000);
+    d = new Date(n);
+    d.setHours(0);
+    d.setMinutes(0);
+    d.setSeconds(0);
+    d.setMilliseconds(0);
+    
+    // check if data is older than start of yesterday
+    var oldDate = new Date(dailies[(curr - 1)].time);
+    if(oldDate < d )
+    {
+      // generate alpha vantage link to get stock for all stocks in portfolio
+      var api_link = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=";
+      api_link = api_link + $("table").find("tr").eq(curr).find("td").eq(0).text();
+      api_link = api_link + "&apikey=" + localStorage.getItem("plutus_key");
+    
+      // retrieve stock data using alpha vantage api
+      $.getJSON(api_link, function( data ) {
+        var quotes = data["Time Series (Daily)"];
+        var change = quotes[0]["4. close"] - quotes[1]["4. close"];
+        
+        // update table with latest data
+        $("table").find("tr").eq(curr).find("td").eq(6).text(change);
+        
+        var port_name = sessionStorage.getItem("plutus_name");
+        var script = "update_holding.php?name=" + port_name + "&id=" + dailies[(curr-1)].id + "&time=" + (n/1000) + "&price=" + quotes[0]["4. close"];
+        
+        // save data to to database
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+        
+          // save data in session storage
+          dailies[(curr - 1)].time = n;
+          dailies[(curr - 1)].price = quotes[0]["4. close"];
+          sessionStorage.setItem("plutus_dailies", dailies);
+        };
+        xmlhttp.open("GET", script, true);
+        xmlhttp.send(null);
+      });
+    }
+    
+    sessionStorage.setItem("plutus_dailies_count", curr+1);
+  }
+  else
+  {
+    // clear the interval for the 1 day comparison interval timer
+    var intId = sessionStorage.getItem("plutus_dailies_interval");
+    clearInterval(intervalId);
+  }
 }
 
 function saveHoldingData()

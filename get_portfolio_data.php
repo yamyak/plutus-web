@@ -25,11 +25,14 @@ if(mysqli_num_rows($res) > 0)
   $a = array();
   while($row = mysqli_fetch_assoc($res))
   {
+    $o['id'] = $row["holdingID"];
     $o['symbol'] = $row["symbol"];
     $o['name'] = $row["name"];
     $o['quantity'] = $row["quantity"];
     $o['buyTime'] = $row["buyTime"];
     $o['price'] = $row["price"];
+    $o['oldTime'] = $row["oldTime"];
+    $o['oldPrice'] = $row["oldPrice"];
     
     array_push($a, $o);
   }
