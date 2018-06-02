@@ -183,8 +183,7 @@ function displayMain(username, key)
     clearInterval(intervalId);
   }
   
-  // set the interval timer to 60 seconds
-  // to update the display
+  // set the interval timer to 5 mins to update the display
   var intId = setInterval(updateOnInterval, 300000);
   sessionStorage.setItem("plutus_interval", intId);
 }
@@ -312,8 +311,8 @@ function displayPortfolio(name)
           var totalGain = 0;
           for(var q in quotes)
           {
-            var id = parseInt(holdings[q]["id"];
-            var oldTime = parseInt(holdings[q]["oldTime"];
+            var id = parseInt(holdings[q]["id"]);
+            var oldTime = new Date(holdings[q]["oldTime"]);
             var oldPrice = parseFloat(holdings[q]["oldPrice"]);
             
             var buyPrice = parseFloat(holdings[q]["price"]);
@@ -359,7 +358,7 @@ function displayPortfolio(name)
             // create array of 1 day comparison data 
             var day = new Object();
             day.index = id;
-            day.time = oldTime * 1000;
+            day.time = oldTime;
             day.price = oldPrice;
             dailies.push(day);
           }
@@ -399,9 +398,10 @@ function displayPortfolio(name)
           var intId = setInterval(updateDailies, 5000)
           
           // save 1 day comparison data and interval id
-          sessionStorage.setItem("plutus_dailies", dailies);
+          sessionStorage.setItem("plutus_dailies", JSON.stringify(dailies));
           sessionStorage.setItem("plutus_dailies_count", 1);
           sessionStorage.setItem("plutus_dailies_interval", intId);
+          sessionStorage.setItem("plutus_dailies_total", 0);
         });
       }
       else
@@ -420,8 +420,8 @@ function displayPortfolio(name)
 
 function updateDailies()
 {
-  var dailies = sessionStorage.getItem("plutus_dailies");
-  var curr = sessionStorage.getItem("plutus_dailies_count");
+  var dailies = JSON.parse(sessionStorage.getItem("plutus_dailies"));
+  var curr = parseInt(sessionStorage.getItem("plutus_dailies_count"));
   
   // if still more stock to update, continue
   if( (curr - 1) < dailies.length )
@@ -448,35 +448,87 @@ function updateDailies()
       // retrieve stock data using alpha vantage api
       $.getJSON(api_link, function( data ) {
         var quotes = data["Time Series (Daily)"];
-        var change = quotes[0]["4. close"] - quotes[1]["4. close"];
         
+        // create object key to parse object for latest 2 stock data points
+        var key = Object.keys(quotes);
+        var today = parseFloat(quotes[key[0]]["4. close"])
+        var yester = parseFloat(quotes[key[1]]["4. close"])
+        
+        // retrieve the # of units of the stock and calculate today's total change
+        var units = parseFloat($("table").find("tr").eq(curr).find("td").eq(3).text());
+        var change = units*(today - yester);
+        
+        // update the total amount and save it
+        var total = parseFloat(sessionStorage.getItem("plutus_dailies_total")) + change;
+        sessionStorage.setItem("plutus_dailies_total", total);
+
         // update table with latest data
-        $("table").find("tr").eq(curr).find("td").eq(6).text(change);
-        
-        var port_name = sessionStorage.getItem("plutus_name");
-        var script = "update_holding.php?name=" + port_name + "&id=" + dailies[(curr-1)].id + "&time=" + (n/1000) + "&price=" + quotes[0]["4. close"];
+        $("table").find("tr").eq(curr).find("td").eq(5).text(change.toFixed(2));
+        if(change < 0)
+        {
+          $("table").find("tr").eq(curr).find("td").eq(5).removeClass("positive").addClass("negative");
+        }
+        else
+        {
+          $("table").find("tr").eq(curr).find("td").eq(5).removeClass("negative").addClass("positive");
+        }
+          
+        // clean up the date string (remove Z, T, and milliseconds field)
+        var t = d.toJSON();
+        t = t.replace("T", " ");
+        t = t.slice(0, -5);
+        var script = "update_holding.php?&id=" + dailies[(curr-1)].index + "&time=" + t + "&price=" + yester;
         
         // save data to to database
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
-        
-          // save data in session storage
-          dailies[(curr - 1)].time = n;
-          dailies[(curr - 1)].price = quotes[0]["4. close"];
-          sessionStorage.setItem("plutus_dailies", dailies);
+          // parse the php script response
+          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) 
+          {
+            result = xmlhttp.responseText;
+            
+            if(result === "SUCCESS")
+            {
+              // save data in session storage
+              dailies[(curr - 1)].time = d;
+              dailies[(curr - 1)].price = yester;
+              sessionStorage.setItem("plutus_dailies", JSON.stringify(dailies));
+            }
+            else if(result === "QUERY_FAILED" || result === "NO_CONNECTION")
+            {
+              // unable to access database
+              alert("Error accessing database");
+            }
+          }
         };
+        
         xmlhttp.open("GET", script, true);
         xmlhttp.send(null);
       });
     }
     
+    // increment count to update next stock
     sessionStorage.setItem("plutus_dailies_count", curr+1);
   }
   else
   {
+    // get the total change for today
+    var total = parseFloat(sessionStorage.getItem("plutus_dailies_total"));
+    
+    // update table with total change data
+    $("table").find("tr").eq(curr).find("td").eq(5).text(total.toFixed(2));
+    if(total < 0)
+    {
+      $("table").find("tr").eq(curr).find("td").eq(5).removeClass("positive").addClass("negative");
+    }
+    else
+    {
+      $("table").find("tr").eq(curr).find("td").eq(5).removeClass("negative").addClass("positive");
+    }
+    
     // clear the interval for the 1 day comparison interval timer
     var intId = sessionStorage.getItem("plutus_dailies_interval");
-    clearInterval(intervalId);
+    clearInterval(intId);
   }
 }
 

@@ -1,5 +1,4 @@
 <?php
-$name = $_GET['name'];
 $id = $_GET['id'];
 $time = $_GET['time'];
 $price = $_GET['price'];
