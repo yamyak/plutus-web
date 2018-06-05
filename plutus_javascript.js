@@ -401,7 +401,7 @@ function displayPortfolio(name)
           sessionStorage.setItem("plutus_dailies", JSON.stringify(dailies));
           sessionStorage.setItem("plutus_dailies_count", 1);
           sessionStorage.setItem("plutus_dailies_interval", intId);
-          sessionStorage.setItem("plutus_dailies_total", 0);
+          //sessionStorage.setItem("plutus_dailies_total", 0);
         });
       }
       else
@@ -459,8 +459,8 @@ function updateDailies()
         var change = units*(today - yester);
         
         // update the total amount and save it
-        var total = parseFloat(sessionStorage.getItem("plutus_dailies_total")) + change;
-        sessionStorage.setItem("plutus_dailies_total", total);
+        //var total = parseFloat(sessionStorage.getItem("plutus_dailies_total")) + change;
+        //sessionStorage.setItem("plutus_dailies_total", total);
 
         // update table with latest data
         $("table").find("tr").eq(curr).find("td").eq(5).text(change.toFixed(2));
@@ -512,8 +512,14 @@ function updateDailies()
   }
   else
   {
+    var total = 0;
+    for(var i = 1; i < curr; i++)
+    {
+      total += parseFloat($("table").find("tr").eq(i).find("td").eq(5).text());
+    }
+    
     // get the total change for today
-    var total = parseFloat(sessionStorage.getItem("plutus_dailies_total"));
+    //var total = parseFloat(sessionStorage.getItem("plutus_dailies_total"));
     
     // update table with total change data
     $("table").find("tr").eq(curr).find("td").eq(5).text(total.toFixed(2));
