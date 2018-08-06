@@ -302,7 +302,7 @@ function displayPortfolio(name)
           
           // add table header to table
           $("table").empty();
-          $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th><th scope="col">Total Gain/Loss</th></tr>');
+          $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th><th scope="col">Percent</th><th scope="col">Total Gain/Loss</th><th scope="col">Total Percent</th></tr>');
           
           var dailies = [];
           
@@ -322,33 +322,35 @@ function displayPortfolio(name)
             // calculate the gain based on how much the stock cost yesterday
             // and how much it costs now
             var gainToday = ((currPrice - oldPrice) * buyQuant);
+            var percentToday = 100 * gainToday / (oldPrice * buyQuant);
             todayGain += gainToday;
             
             // color the table text according to whether it's a positive or negative gain
             var mid = '';
             if(gainToday >= 0)
             {
-              mid = '<td class="positive">' + gainToday.toFixed(2) + '</td>';
+              mid = '<td class="positive">' + gainToday.toFixed(2) + '</td><td class="positive">' + percentToday.toFixed(2) + '</td>';
             }
             else
             {
-              mid = '<td class="negative">' + gainToday.toFixed(2) + '</td>';
+              mid = '<td class="negative">' + gainToday.toFixed(2) + '</td><td class="negative">' + percentToday.toFixed(2) + '</td>';
             }
             
             // calculate the gain based on how much the stock cost initially
             // and how much it costs now
             var gain = ((currPrice - buyPrice) * buyQuant);
+            var percent = 100 * gain / (buyPrice * buyQuant);
             totalGain += gain;
             
             // color the table text according to whether it's a positive or negative gain
             var end = '';
             if(gain >= 0)
             {
-              end = mid + '<td class="positive">' + gain.toFixed(2) + '</td></tr>';
+              end = mid + '<td class="positive">' + gain.toFixed(2) + '</td><td class="positive">' + percent.toFixed(2) + '</td></tr>';
             }
             else
             {
-              end = mid + '<td class="negative">' + gain.toFixed(2) + '</td></tr>';
+              end = mid + '<td class="negative">' + gain.toFixed(2) + '</td><td class="negative">' + percent.toFixed(2) + '</td></tr>';
             }
             
             // add the table data to table
@@ -367,21 +369,21 @@ function displayPortfolio(name)
           var beg = '';
           if(todayGain >= 0)
           {
-            beg = '<tr><td></td><td></td><td></td><td></td><td></td><td class="positive">' + todayGain.toFixed(2) + '</td>';
+            beg = '<tr><td></td><td></td><td></td><td></td><td></td><td class="positive">' + todayGain.toFixed(2) + '</td><td></td>';
           }
           else
           {
-            beg = '<tr><td></td><td></td><td></td><td></td><td></td><td class="negative">' + todayGain.toFixed(2) + '</td>';
+            beg = '<tr><td></td><td></td><td></td><td></td><td></td><td class="negative">' + todayGain.toFixed(2) + '</td><td></td>';
           }
           
           var row = '';
           if(totalGain >= 0)
           {
-            row = beg + '<td class="positive">' + totalGain.toFixed(2) + '</td></tr>';
+            row = beg + '<td class="positive">' + totalGain.toFixed(2) + '</td><td></td></tr>';
           }
           else
           {
-            row = beg + '<td class="negative">' + totalGain.toFixed(2) + '</td></tr>';
+            row = beg + '<td class="negative">' + totalGain.toFixed(2) + '</td><td></td></tr>';
           }
           $("table").append(row);
           
@@ -408,7 +410,7 @@ function displayPortfolio(name)
       {
         // if no holdings in portfolio, clear table and add header
         $("table").empty();
-        $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th><th scope="col">Total Gain/Loss</th></tr>');
+        $("table").append('<tr><th scope="col">Symbol</th><th scope="col">Name</th><th scope="col">Buy Price</th><th scope="col">Buy Quantity</th><th scope="col">Current Price</th><th scope="col">Gain/Loss</th><th scope="col">Percent</th><th scope="col">Total Gain/Loss</th><th scope="col">Total Percent</th></tr>');
       }
       
       $("#port_data").removeClass("hidden");
@@ -457,6 +459,7 @@ function updateDailies()
         // retrieve the # of units of the stock and calculate today's total change
         var units = parseFloat($("table").find("tr").eq(curr).find("td").eq(3).text());
         var change = units*(today - yester);
+        var perc = 100 * change / (yester * units);
         
         // update the total amount and save it
         //var total = parseFloat(sessionStorage.getItem("plutus_dailies_total")) + change;
@@ -464,13 +467,16 @@ function updateDailies()
 
         // update table with latest data
         $("table").find("tr").eq(curr).find("td").eq(5).text(change.toFixed(2));
+        $("table").find("tr").eq(curr).find("td").eq(6).text(perc.toFixed(2));
         if(change < 0)
         {
           $("table").find("tr").eq(curr).find("td").eq(5).removeClass("positive").addClass("negative");
+          $("table").find("tr").eq(curr).find("td").eq(6).removeClass("positive").addClass("negative");
         }
         else
         {
           $("table").find("tr").eq(curr).find("td").eq(5).removeClass("negative").addClass("positive");
+          $("table").find("tr").eq(curr).find("td").eq(6).removeClass("negative").addClass("positive");
         }
           
         // clean up the date string (remove Z, T, and milliseconds field)
